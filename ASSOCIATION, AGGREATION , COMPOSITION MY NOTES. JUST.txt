@@ -1,0 +1,235 @@
+ASSOCIATION IS  A RELATIONSHIP  BETWEEN TWO  SEPERATE  CLASSES,  ESTABLISH THROUGH  THEIR OBJECTS,   ASSOCITION  CAN BE  ONE TO ONE , ONNE TO MANY,  MANY TO MANY.  
+
+ASSOCAITION  ESTAABLISH THROUGH  OBJECTS,  IN WHICH  PARENT CLASS   HAS  REFERENCE OF ANOTHER OBJECT.  
+
+
+  ASSOCIATIO IS   "HAS-A" RELATIONSHIP,     INHERITANCE  IS  "IS-A" RELATIONSHIP.
+ASSOCIATION TYPES
+===============
+AGGREGATION : 
+------------------
+ THE PARENT CLASS HAS  REFERENCE OF  ANOTHER OBJECT,  IN WHICH  
+LIFE CYCLE  OF  REFERENCE OBJECT  STILL  EXIST , EVEN THE PARENT OBJECT IS  REMOVED OR DELETED.   HERE PARENT AND  CHILD  OBJECTS   ARE  HAVIND  INDEPDENT  LIFECYCLE.
+
+AGGREGATION  "HAS-A" RELATIONSHIP.
+AGGREGATION IS  WEAK RELATIONSHIP.
+
+COMPOSITION:
+-------------------
+       THE PARENT CLASS HAS REFERENCE OF ANOTHER OBJECT, IN WHICH  LIFECYCLE OF REFERENCEOBJECT IS  COMPLETELY   DEPENDENT ON  THE LIFE CYCLE OF PARENT OBJECT, IF PARENT  OBJECT  DELETE  THEN  CHILD OBJECTS ARE ALSO  DELETED.    COMPOSITION    IS  ALSO  "HAS-A" RELATIONSHIP.
+COMPOSITION IS  STRONG ASSOCIATION  RELATIONSHIP.
+
+
+
+
+Code reuse is best achieved by aggregation.  
+
+
+Type of association: Composition is a strong Association whereas Aggregation is a weak Association.
+
+
+========================================================================================================================================================================================================================================================================================================================================
+
+
+CAR  AND ENGINE  EXAMPLES  FOR  AGGREGATION  AND   COMPOSITION  ...
+==========================================================================
+
+
+AGGREGATION
+====================
+
+// Parent class
+public class Car {
+    private List<Engine> engines;
+
+    public Car() {
+        this.engines = new ArrayList<>();
+    }
+
+    public void addEngine(Engine engine) {
+        engines.add(engine);                                           *************ADD ENGINE OBJECT  TO  CAR
+    }
+
+    public void removeEngine(Engine engine) {
+        engines.remove(engine);
+    }
+}
+
+// Child class
+public class Engine {
+    // Engine implementation details
+}
+
+// Usage
+public class Main {
+    public static void main(String[] args) {
+        Car car = new Car();
+        Engine engine1 = new Engine();*************************************
+        Engine engine2 = new Engine();*************************************************HHRE ENGINE OBJECT  OUTSIDE  IS CREATED.
+
+        car.addEngine(engine1);
+        car.addEngine(engine2);
+
+        // Perform operations with the car and its engines
+
+        car.removeEngine(engine1);
+    }
+}
+
+
+In this example, the Car class represents the parent class, and the Engine class represents the referenced object. The Car class has an aggregation relationship with the Engine class because it has a list of Engine objects through the engines list.
+
+The Car class can add or remove engines from its collection using the addEngine() and removeEngine() methods, respectively. The Engine objects have an independent lifecycle, and they can exist even if the Car object is removed or deleted.
+
+In the Main class, we create a Car object and two Engine objects. We then add both engines to the car using the addEngine() method. After performing operations with the car and its engines, we remove engine1 from the car using the removeEngine() method.
+
+The aggregation relationship allows the Car object to reference multiple Engine objects independently, and their lifecycles are not tightly coupled.
+
+I hope this example clarifies the concept of aggregation with the Car and Engine classes!
+
+
+
+COMPOSITION 
+==============================
+
+// Parent class
+public class Car {
+    private Engine engine;
+
+    public Car() {
+        this.engine = new Engine();***********************************************HERE IT IS SPECIFIED  FOR  ENGINE OBJECT ...  
+    }
+
+    public void start() {
+        engine.startEngine();
+        // Additional logic for starting the car
+    }
+
+    public void stop() {
+        engine.stopEngine();
+        // Additional logic for stopping the car
+    }
+}
+
+// Child class
+public class Engine {
+    public void startEngine() {
+        System.out.println("Engine started");
+        // Additional logic for starting the engine
+    }
+
+    public void stopEngine() {
+        System.out.println("Engine stopped");
+        // Additional logic for stopping the engine
+    }
+}
+
+// Usage
+public class Main {
+    public static void main(String[] args) {
+        Car car = new Car();
+        car.start();
+        // Perform operations with the car
+        car.stop();
+    }
+}
+In this example, we have a Car class representing the parent class and an Engine class representing the child class. The Car class has a composition relationship with the Engine class because it has a reference to the engine object.
+
+When a Car object is created, it automatically creates an Engine object, establishing the composition relationship. The Car class uses the Engine object to perform operations such as starting and stopping the car.
+
+In the start() and stop() methods of the Car class, the car's engine is started and stopped, respectively, by invoking the corresponding methods on the Engine object.
+
+Note that in this composition relationship, the lifecycle of the Engine object is entirely dependent on the Car object. When the Car object is created, the Engine object is created along with it. When the Car object is destroyed, the Engine object is also destroyed.
+
+
+
+
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+AGGREGATION  ANOTHER EXAMPLE
+
+
+
+Here's an example of aggregation in Java:
+
+java
+Copy code
+// Parent class
+public class Library {
+    private List<Book> books;
+
+    public Library() {
+        this.books = new ArrayList<>();
+    }
+
+    public void addBook(Book book) {
+        books.add(book);
+    }
+}
+
+// Child class
+public class Book {
+    private String title;
+
+    public Book(String title) {
+        this.title = title;
+    }
+}
+
+// Usage
+public class Main {
+    public static void main(String[] args) {
+        Library library = new Library();
+        Book book1 = new Book("Book 1");
+        Book book2 = new Book("Book 2");
+
+        library.addBook(book1);
+        library.addBook(book2);
+    }
+}
+In this example, the Library class represents the parent class, while the Book class represents the referenced object. The Library class has an aggregation relationship with the Book class because it has a reference to multiple Book objects through the books list. The Library class can add books to its collection independently of the lifecycle of the Library object.
+
+
+
+
+
+COMPOSITION ANOTHER EXAMPLE
+================================
+
+// Parent class
+public class House {
+    private Room kitchen;
+
+    public House() {
+        this.kitchen = new Room();
+    }
+
+    public void demolishHouse() {
+        // Delete the house and everything inside
+        kitchen = null;
+    }
+}
+
+// Child class
+public class Room {
+    // Room implementation details
+}
+
+// Usage
+public class Main {
+    public static void main(String[] args) {
+        House house = new House();
+        // Perform operations with the house and its rooms
+
+        house.demolishHouse();
+        // At this point, the kitchen (child object) is also deleted along with the house (parent object)
+
+  IF HOUSE IS  REMOVED  IE,  MAKING  IT  REFERENCE TO NULL   IE.,   house=null;   then  room  object is also null. okay na notes sdureshskdddresna
+    }
+}
+
+
+example, the House class represents the parent class, while the Room class represents the child class. The House class has a composition relationship with the Room class because it has a reference to the kitchen object. The Room object's lifecycle is completely dependent on the House object. If the House object is deleted or demolished, the associated Room object (kitchen) is also deleted.
+
+Please note that the examples provided are simplified for illustrative purposes, and in practice, aggregation and composition can involve more complex relationships and multiple objects.

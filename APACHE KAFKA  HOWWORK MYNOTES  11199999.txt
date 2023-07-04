@@ -1,0 +1,275 @@
+JMS messages are not inherently persisted, many JMS providers do offer persistence as an option for messages, allowing them to be stored and recovered in the event of a failure.
+
+
+HOW IT WORKS.
+
+THE PRODUCERS WHO ARE RESPONSIBLE TO SEND MESSAGES   SEND MESSAGE DATA TO  THE SPECIFIED  TOPIC IE, TOPIC NAME    IN THE KAFKA CLUSTER OF MESSAGE BROKERS.
+
+
+
+When a message is sent without specifying a key, the default partitioning strategy is round-robin partitioning.
+IF THERERE ARE 2 PARTITIONS   0 AND 1
+
+THE MESSAGE WILL GO TO PARTITION 0  AND  AFTER FILL  IT GOES TO NEXT AVAILABLE  PARTITIONS IE.,PARTITION 1.
+
+IF THE MESSAGE  IS SEND WITH  KEY AND VALUE,  THE KAFKA MESSAGE BROKER USES  HASHCODE OF KEY  TO DETERMINE THE  PARTITION NUMBER.
+
+he key "apple" is a string of characters.
+
+Kafka applies a hash function to the key to produce a hash code. Let's say the hash code for "apple" is 12345.
+
+Kafka takes the modulo of the hash code with the number of partitions to determine the partition number. In our example, 12345 % 4 = 1, so the message with the key "apple" and the value "hello world" would be written to partition 1.
+
+IF THE PARTITION 1  IS FILLEED,  THEN IT USES AGAIN THE ROUND ROBIN PARTITION STRATEGY , AND NEXT AVALIABLE EMPTY PARTITIONS  0,2   SO MESSAGE WILL GO 
+TO 0 OR  2    AND SO ON.
+
+
+ONCE THE MESSAGE GOT  AT PARTITION,  THE NEXT PROCESS
+
+Message Storage: Messages are stored in the partition in the order they are received. Each message is associated with an offset, which represents its unique position within the partition.
+
+
+Fault Tolerance: Kafka ensures fault tolerance by replicating partitions across multiple broker nodes. Each partition has a configurable replication factor, and Kafka automatically handles replication and leader election to ensure data durability and availability.
+
+
+PARTITION 
+ A partition is a sequence of messages that are stored in the order IN WHICH THEY ARE RECEIVED ,  and each partition can handle a certain amount of message data
+
+In a partition, each message is assigned an incremental id, also called "offset".
+
+
+ONCE  MESSAGE ARERECEIVED AT PARTITION,  IT KAFKA   REPLICATE THE PARITIONS  IN MULITPLE BROKER NODERS,  TO ENSURE FAULT TOLERANCE.
+
+
+
+
+
+org.apache.kafka.clients.consumer
+Class KafkaConsumer<K,V>
+
+
+
+ConsumerRecords<K,V>	poll(Duration timeout)
+Fetch data for the topics or partitions specified using one of the subscribe/assign APIs.
+ConsumerRecords<K,V>	poll(long timeoutMs)
+
+
+In Apache Kafka, consumers do not get notified when a message is received at a partition. Instead, they continuously poll the broker for new messages. 
+
+IN APACHE KAFKA , ONCE MESSAGE RECEIVED AT PARTITION ,  THE CONSUEMER WHO CONSUMES MESSAGE  DO NOT GET NOTIFICATION,  
+
+INSTEAD IT CONSUMERS CONTINUOUSLY USE POLL MECHNAISM  ,  THAT REPEATLY AT TIME INTERVAL THE CONSUMER  POLL THE CONCERNED TOPIC  OF THE PARTITIONS   OF THE MESSAGE BROKER.
+
+             POLL( 800)  800 MILLISECONDS
+
+
+
+
+DEFAULT TO BE DONE IS POLL MECHANISM ONLY.
+
+
+The consumer keeps track of the last offset it has read from each partition, and in the next poll, it requests messages starting from the next offset. If there are no new messages, the consumer will wait for a specified amount of time before sending another poll request.
+
+THE CONSUMERS  POLL TO LAST OFFSET OF EACH PARTITION AND ONCE  FINISH, IT POLLS TO NEXT PARTITION  IN THE TOPIC.
+
+IF THERE ARE NO MESSAGES  , IT WAIT  FOR SEPECIFIED AMOUTN OF TIME  TO POLL THE PARTIITION IN TOPIC. CONTINUOUSLY DONE.
+
+
+
+ADITTIONALLY 
+  
+
+In addition to continuous polling, Apache Kafka also supports a feature called "push notifications" using the Java API. With push notifications, the consumer registers itself with the broker to receive notifications when new messages arrive at a partition. However, this feature is not recommended for production use, as it can result in an uneven distribution of messages among consumers.
+
+
+
+However, it is also possible to use the push model to notify consumers of new messages. In this case, the broker sends messages to the consumer as soon as they become available, without the consumer having to poll for them explicitly. This can be achieved using the Kafka Consumer API's subscribe() method with the ConsumerRebalanceListener interface. 
+
+
+
+
+HOW MESSAGES ARE STORED . IE., PERSISTED .. IN KAFKA.
+
+
+IN SERVER.PROPERTIES,  IT CONFIGURES  THE MESSAGE PERSISTECNCE , HOW MESSAGES IN TOPIC  ARE PERSISTED  SPECIFIED IN LOG.DIRS .
+
+YOU CAN SPECIFIY HOW LONG THEMSAAGE WILL  BE RETAIN IN  HOURS  OR MILLISECONDS  DEPENDINGUPON THE PREFERENCE.
+IF MESSAGE ARE  RETAIN  MORE THAT  THESE TIME SPECIFIED , IT WILL BE DELETED.
+
+YOU CAN SPECIFY WHEN TO CHECK THE MESSAGES  FOR THE EXPIRY TIME  FOR DELETION.  IE,  EXPRITY TIME  SPECIFY IN RETAIN IN HOUSRS FOR MESSAGE.
+
+
+  
+
+
+n Apache Kafka, the configuration of message persistence is done in the server.properties file. Here are the relevant properties related to message persistence:
+
+log.dirs: This property specifies the directories in which Kafka will store the message logs for each topic partition. This can be a comma-separated list of multiple directories to provide fault tolerance in case one of the disks fails.
+
+num.partitions: This property sets the default number of partitions for new topics. Each partition will have its own log directory, and thus its own set of message logs.
+
+log.retention.hours or log.retention.ms: These properties specify how long Kafka should retain messages in the logs before deleting them. Messages that are older than the specified retention period will be deleted from the logs. You can use either hours or milliseconds for the retention time, depending on your preference.
+
+log.segment.bytes: This property sets the maximum size of each message log segment. Once a segment reaches this size, Kafka will create a new segment and start writing new messages to it.
+
+log.retention.check.interval.ms: This property specifies how often Kafka should check for expired messages and delete them from the logs.
+
+These properties determine how Kafka persists messages and manages the message logs. By configuring these properties, you can control how long Kafka will retain messages, how large each log segment will be, and where Kafka will store the log data.
+
+
+
+
+HOW ACKNOWLEDGEMENT  HAPPENS  IN APACHE KAFKA.
+============================================
+
+THE ACKNOWLEDGEMENT ARE CONFIGURED IN PRODUCER.PROPERTIES OF APACHE KAFKA
+
+a, acknowledgments are configured using the acks parameter in the producer configuration. This parameter specifies how many acknowledgments the producer requires the broker to receive before considering a message as sent successfully.
+
+There are three possible values for acks:
+
+acks=0: The producer does not wait for any acknowledgment from the broker, and simply sends the message to the broker and moves on.
+THE PRODUCER DOES NOT WAIT FOR ACKNOWLEDGEMENT  ONCE SEND MESSAGE, IT SENDS ANOTHER MESSAGE .
+
+
+acks=1: The producer waits for a response from the broker to confirm that the message was successfully written to the broker's log.
+THE PROCUDER WAITS FOR RESPONSE FRM BROKER  TO CONFIRM THT MESSAGE SUCCESSULY  PERSISTED  .
+When a message is written to the broker's log, it means that the message is now durable and can be retrieved even if the broker fails. 
+IE., PERSISTED ONLY..
+
+
+acks=all (or acks=-1): The producer waits for all in-sync replicas to acknowledge the message, which ensures that the message has been durably persisted in the cluster.
+
+THE PRODUCER WAIT  FOR ALL REPLICAS   TO ACKNOWLEDGE THE MESSAGE,   IE,, MESSAGES THAT  STORE IN PARTITIONS OF TOPIC IN A BORKER  , ARE RPELAICATED  TO SOME BROKERS  IN  THE CLUSTER.
+ 
+
+
+The acks parameter can be set at either the producer level or the topic level. When set at the topic level, it applies to all producers writing to that topic.
+
+
+=================
+
+EVENT STREAMING ... 
+
+
+PRODUCERS CONTINUOUSLY GENERATE EVENTS  BY SENDING MESSAGES TO THE APACHE BROKER .IE, TO SPECIFIC TOPIC .
+IT DOES SOME USING SOME SOFTARE  TO RUN CONTINUOUSLY SEND  MESSAGES  ...  
+
+AT SERVER IT HAS LISTENER FOR SOME DATASOURCE , WHEN A NEW DATA ARRIVE TO  SERVER, IT GENERATES EVENT AND SEND MESSAGE DATA TO APACHE KAFKA BROKER.
+IT IS DNE CONTINUOYSLY.
+
+
+In an event-driven architecture, producers continuously generate events by sending messages to the broker. This process is similar to how a person sends a text message to a friend, but in a much larger scale.
+
+To generate events continuously, producers need to be designed to run continuously without any manual intervention. For example, a producer could be a piece of software that runs on a server and listens to some data source, such as a database, and sends a message to Kafka whenever there is new data. The producer software can be designed to keep running indefinitely as a background process.
+
+In addition, producers can be designed to generate events based on specific triggers or thresholds. For instance, a producer could be configured to send a message to Kafka only when a certain threshold of data is accumulated or when a specific event occurs.
+
+Overall, the key idea behind event streaming is to enable continuous and real-time processing of events as they occur, allowing businesses to quickly respond to changes and opportunities in their environment.
+
+
+
+
+
+OKAY..
+
+
+APACHE KAFKA IS OPEN SOURCE  REAL TIME EVENT STREAM   MESSAGING SYSTEM  IN DISTRIBUTEED ENVIOURMET.
+IT USES PUBLISH SUBSCRIBE MESSAGINE PATTERING MODEL, AND IT MESSAGING  IS ASYNCHRONOUS .IT IS HIGHLY SCALABLE AND  FAULT TOLERANT AND  HIGH AVAILABILITY, PERFORMANCE BETTER.
+
+
+
+
+
+JMS  IS CENTRLAIZED MESAGING SYSTEM,  IF LACKS  SCALABILITY OF MESSAGE BROKER , WHEN NUMBER OF MESSAGES ARE INCREASED.
+AND NOT HAVAING  FAULT TOLERANCE.  
+
+
+
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+WHAT IS FAULT TOLERANCE , AND HIGH AVAILABILITY   SCALABILITY  AND HIGH PERFORMNACE GOOD.
+==================================================================================
+
+Fault tolerance in messaging systems refers to the system's ability to continue functioning properly in the event of a failure. 
+
+
+FAULT TOLERANCE  IN MESSAGING SYSTEM REFERES
+THE SYSTEM ABILITY TO CONTINUE  FUNCTIONING PROPERLY IN THE EVENT OF  MESSAGEING SYSTEM TEMPORARITYLY FAILURE, 
+
+
+IF THE MESSAGING SYSTEM  DOES NOT HAVE FAULT TOLERANCE  FEATURE , IT CANT SEND MESSAGES  TO THE CONSUMERS , LEAD TO A VERY PROBLEMATIC .
+
+
+
+IF THE MESSAGING SYSTEM HAVE FAULT TOLERANCE FEATURE .. IE, IN APACHE KAFKA MESSAGING SYSTEM,   
+
+
+ONCE MESSAGE IS RECEIVED AT PARTITION OF TOPIC  OF ONE NODE OF BROKER IN THE CLUSTER OF BROKERS , THE BROKER  REPLICATES THE MESSAGES  TO  OTHER BROKERS IN THE CLUSTER.
+SO IF  ONE BROKER  GOES  DOWN OR FAILS,  OTHER BROKER WILL CONTINUE SERVING   BYGIVING MESSAGES TO  THE CONSUMER;
+AND ALSO THE  MESSAGE IS PERSISTED.
+
+
+JMS  IS NOT HAVING THESE FEATURE.  THE  FAULT TOLERANCE.
+
+
+
+HIGH AVAILABILITY   AND FAULT TOLERNACE   SAME ..  CONCEPT.  IF ANY OF MESSAGE BROKER FAILS, OTHER BROKERS WILL SERVE THE MSSSAGING ..    
+
+
+
+NOW SCALABILITY ... FEATURE ..  
+
+  
+
+AS NUMBER OF MESSAGES ARE INCREASING AND PRODUCER  SEND MESSAGES  THE MESSAGE BROKER MUST BE HANDLE  IT  , BY USING  SCALABILITY FEATURE.
+
+ JMS   DOES  NOT SUPPORT  SCALABILITY FEATURE , WHEN NUMBER OF MESSSAGES  ARE INCREASED WHEN PRODUCER TO SEND MESSAGES TO MESSAGE BROKER.
+
+
+APACHE KAFKA  SUPPORT SSCALABILITY FEATURE,   BY DOING CLUSTERING OF MESSAGE BROKERS.
+
+WHEN NO OF MESSAGES INCREASE  , IT APACHE KAFKA  WILL  ADD ANOTHER NODE OF BROKER  TO THE CLUSTER .
+
+KAFKA SUPPORTS  HORIZONTAL SCALING.
+
+
+
+
+
+
+@@@@@@@@SO JMS LACKS  FAULT TOLERNACE, SCALABILITY , REALTIME EVENT STREAMING , PERSISTENCE OF MESSAGES NOT.
+JMS IS CENTRALIZED MESSAGING SYSTEM   TO A SINGLE NETWORK.
+
+
+APACHE KAFKA   IS  A  OPEN SOURCE  REAL TIME EVENT STREAMING MESSAGING SYSTEM IN DISTRIBUTED NETWORK.
+
+IT USED PUBLISH SUBSCRIBE MESSGING PATTERN MODEL,  IT ALSO USES  ASYNCHRONOUS MESSAGING ONLY.
+
+
+FEATURES SUPORT ,  IT SUPPORTS  FAULT TOLERNCE, HIGH SCALABILITY , REALTIME EVENTSTREAMING, PERSISTENCE OF MESSAGES.
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+
+
+
+
+
+
+afka replicates messages across multiple brokers (servers), which means that a copy of each message is stored in multiple locations. If one broker goes down, the other brokers can continue serving requests, and any consumers that were reading from the failed broker can start reading from another broker without losing any data. This replication also ensures that if a broker fails, the data is not lost as there are other replicas to take its place.
+
+
+  
+Let's say you are a business owner who runs an e-commerce website. You use a messaging system to send notifications to customers about their order status (e.g., order received, order shipped, etc.).
+
+Now, let's say that the messaging system experiences a temporary failure, such as a network outage or a hardware malfunction. If your messaging system does not have fault tolerance mechanisms in place, your customers may not receive their notifications, which can lead to frustration and a negative customer experience.
+
+However, if your messaging system has fault tolerance mechanisms in place, such as message replication or automatic failover to a backup system, the system can continue to function even in the event of a failure. This ensures that your customers receive their notifications on time and that your business can continue to operate smoothly.
+
+In short, fault tolerance in messaging systems refers to the system's ability to continue functioning even in the face of failures or errors, thereby ensuring reliability and con
